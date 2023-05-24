@@ -21,7 +21,6 @@ public class ScrollViewsAdapter extends RecyclerView.Adapter<ScrollViewsAdapter.
 
     public void setItem(List<Integer> scrollImagesList) {
         this.scrollImagesList.addAll(scrollImagesList);
-        Collections.shuffle(this.scrollImagesList);
         notifyDataSetChanged();
     }
 
