@@ -17,9 +17,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class ScrollViewsAdapter extends RecyclerView.Adapter<ScrollViewsAdapter.ScrollViewHolder>{
-    private final List<Integer> scrollImagesList = new ArrayList<>();
 
-    public void setItem(List<Integer> scrollImagesList) {
+    private final List<DataBox> scrollImagesList = new ArrayList<>();
+
+    public void setItem(List<DataBox> scrollImagesList) {
         this.scrollImagesList.addAll(scrollImagesList);
         notifyDataSetChanged();
     }
@@ -29,13 +30,15 @@ public class ScrollViewsAdapter extends RecyclerView.Adapter<ScrollViewsAdapter.
     public ScrollViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         final LayoutInflater inflater =LayoutInflater.from(parent.getContext());
         final ScrollItemBinding binding = ScrollItemBinding.inflate(inflater, parent, false);
-        return new ScrollViewHolder(binding);
+        int dataPosition = viewType %   scrollImagesList.size();
+        return new ScrollViewHolder(binding, scrollImagesList);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ScrollViewHolder holder, int position) {
         int dataPosition = position % scrollImagesList.size();
-        holder.bind(scrollImagesList.get(dataPosition));
+        DataBox dataBox = scrollImagesList.get(dataPosition);
+        holder.bind(dataBox, dataPosition);
     }
 
     @Override
@@ -45,14 +48,22 @@ public class ScrollViewsAdapter extends RecyclerView.Adapter<ScrollViewsAdapter.
 
     public static class ScrollViewHolder extends RecyclerView.ViewHolder {
         private final ScrollItemBinding binding;
+        private final List<DataBox> dataBoxList;
+        int index;
 
-        private ScrollViewHolder(ScrollItemBinding binding) {
+        private ScrollViewHolder(ScrollItemBinding binding, List<DataBox> scrollImagesList) {
             super(binding.getRoot());
             this.binding = binding;
+            dataBoxList = new ArrayList<>(scrollImagesList);
         }
 
-        public void bind(Integer image) {
-            binding.imageView.setImageResource(image);
+        public void bind(DataBox image, int position) {
+            binding.imageView.setImageResource(image.image);
+            index = dataBoxList.get(position).index;
+        }
+
+        int getIndex() {
+            return index;
         }
     }
 }
