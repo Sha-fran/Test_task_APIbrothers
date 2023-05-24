@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Test_task_APIbrothers</string>
+    <string name="spin">SPIN</string>
+    <string name="rate">RATE</string>
+    <string name="_00000">00000</string>
+    <string name="balance">Balance</string>
+</resources>
