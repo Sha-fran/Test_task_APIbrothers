@@ -18,10 +18,11 @@ import com.example.test_task_apibrothers.databinding.ActivityMainBinding;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
-    private final List<DataBox> scrollImagesList = new ArrayList<>();
-
+    private final List<Integer> scrollImagesList = new ArrayList<>();
     private final ScrollViewsAdapter scrollViewsAdapter1 = new ScrollViewsAdapter();
     private final ScrollViewsAdapter scrollViewsAdapter2 = new ScrollViewsAdapter();
     private final ScrollViewsAdapter scrollViewsAdapter3 = new ScrollViewsAdapter();
@@ -47,9 +48,17 @@ public class MainActivity extends AppCompatActivity {
         binding.recyclerView3.setLayoutManager(new GridLayoutManager(this.getBaseContext(),1));
         binding.recyclerView3.setAdapter(scrollViewsAdapter3);
 
-        scrollViewsAdapter1.setItem(createScrollImagesList());
-        scrollViewsAdapter2.setItem(createScrollImagesList());
-        scrollViewsAdapter3.setItem(createScrollImagesList());
+        scrollImagesList.add( R.drawable.scroll_image_1);
+        scrollImagesList.add( R.drawable.scroll_image_2);
+        scrollImagesList.add( R.drawable.scroll_image_3);
+        scrollImagesList.add( R.drawable.scroll_image_4);
+        scrollImagesList.add( R.drawable.scroll_image_5);
+
+        scrollViewsAdapter1.setItem(scrollImagesList);
+        scrollViewsAdapter2.setItem(scrollImagesList);
+        scrollViewsAdapter3.setItem(scrollImagesList);
+
+        binding.valueRate.setText(String.valueOf(rate));
 
         position1 = random.nextInt((max-min)) + 1 + min;
         position2 = random.nextInt((max-min)) + 1 + min;
@@ -63,93 +72,87 @@ public class MainActivity extends AppCompatActivity {
         position2 = random.nextInt((max-min)) + 1 + min;
         position3 = random.nextInt((max-min)) + 1 + min;
 
-        binding.balanceValue.setText(String.valueOf(balance));
-        binding.valueRate.setText(String.valueOf(rate));
-
         binding.buttonSpin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 scrollRV(binding.recyclerView1, binding.recyclerView2, binding.recyclerView3, binding.balanceValue);
             }
         });
     }
 
     private int getCurrentItem(RecyclerView recyclerView) {
-        LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-        int position = layoutManager.findFirstVisibleItemPosition();
-        View view = layoutManager.findViewByPosition(position);
-        ScrollViewsAdapter.ScrollViewHolder viewHolder = (ScrollViewsAdapter.ScrollViewHolder) recyclerView.getChildViewHolder(view);
-        return viewHolder.getIndex();
+        return ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
     }
 
     private void scrollRV(RecyclerView recyclerView1, RecyclerView recyclerView2, RecyclerView recyclerView3, TextView balanceValue) {
+        ExecutorService executorService = Executors.newFixedThreadPool(3);
 
-        Thread thread1 = new Thread(new Runnable() {
+        executorService.execute(new Thread(new Runnable() {
             @Override
             public void run() {
                 recyclerView1.smoothScrollToPosition(position1);
             }
-        });
-        thread1.start();
+        }));
 
-        Thread thread2 = new Thread(new Runnable() {
+        executorService.execute(new Thread(new Runnable() {
             @Override
             public void run() {
                 recyclerView2.smoothScrollToPosition(position2);
             }
-        });
-        thread2.start();
+        }));
 
-        Thread thread3 = new Thread(new Runnable() {
+        executorService.execute(new Thread(new Runnable() {
             @Override
             public void run() {
                 recyclerView3.smoothScrollToPosition(position3);
             }
-        });
-        thread3.start();
+        }));
 
-        try {
-            thread1.join();
-            thread2.join();
-            thread3.join();
+        executorService.execute(new Thread(new Runnable() {
+            Handler handler = new Handler(Looper.getMainLooper());
 
-            position1 += random.nextInt((max-min) + 1 + min);
-            position2 += random.nextInt((max-min) + 1 + min);
-            position3 += random.nextInt((max-min) + 1 + min);
+            @Override
+            public void run() {
+                int index1 = getCurrentItem(recyclerView1) % 5;
+                int index2 = getCurrentItem(recyclerView2) % 5;
+                int index3 = getCurrentItem(recyclerView3) % 5;
 
-            int index1 = getCurrentItem(recyclerView1);
-            int index2 = getCurrentItem(recyclerView2);
-            int index3 = getCurrentItem(recyclerView3);
+                if (index1 == index2 && index2 == index3) {
+                    balance += rate * 5;
+                } else if (index1 == index2 || index2 == index3) {
+                    balance += rate * 2;
+                } else {
+                    balance -= rate;
+                }
 
-            if (index1 == index2 && index2 == index3) {
-                balance += rate * 5;
-            } else if (index1 == index2 || index2 == index3) {
-                balance += rate * 2;
-            } else {
-                balance -= rate;
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        balanceValue.setText(String.valueOf(balance));
+                    }
+                });
+
             }
-            balanceValue.setText(String.valueOf(balance));
+        }));
+        executorService.shutdown();
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        position1 += random.nextInt((max-min) + 1 + min);
+        position2 += random.nextInt((max-min) + 1 + min);
+        position3 += random.nextInt((max-min) + 1 + min);
+
+//        int index1 = getCurrentItem(recyclerView1) % 5;
+//        int index2 = getCurrentItem(recyclerView2) % 5;
+//        int index3 = getCurrentItem(recyclerView3) % 5;
+//
+//        if (index1 == index2 && index2 == index3) {
+//            balance += rate * 5;
+//        } else if (index1 == index2 || index2 == index3) {
+//            balance += rate * 2;
+//        } else {
+//            balance -= rate;
+//        }
+//
+//        balanceValue.setText(String.valueOf(balance));
     }
-
-    private List<DataBox> createScrollImagesList() {
-        final int[] images = {
-                R.drawable.scroll_image_1,
-                R.drawable.scroll_image_2,
-                R.drawable.scroll_image_3,
-                R.drawable.scroll_image_4,
-                R.drawable.scroll_image_5
-        };
-
-        for (int i = 0; i < images.length; i++) {
-            DataBox dataBox = new DataBox(images[i], i );
-            scrollImagesList.add(dataBox);
-        }
-        System.out.println(scrollImagesList.size());
-        return scrollImagesList;
-    }
-
 }
